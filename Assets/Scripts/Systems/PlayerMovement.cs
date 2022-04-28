@@ -13,7 +13,9 @@ public class PlayerMovement : IEcsRunSystem, IEcsInitSystem
     public void Init(EcsSystems systems)
     {
         _player.CreateEntity(_world);
-        _filter = _world.Filter<PlayerTag>().Inc<RigidBodyRef>().End();
+        _rigidBodyFilter = _world.Filter<PlayerTag>().Inc<RigidBodyRef>().End();
+        _rigidBodyRefs = _world.GetPool<RigidBodyRef>();
+        _finishFilter = _world.Filter<FinishTag>().End();
     }
 
     public void Run(EcsSystems systems)
@@ -22,17 +24,25 @@ public class PlayerMovement : IEcsRunSystem, IEcsInitSystem
         {
             _directionIndex = _directionIndex == 0 ? 1 : 0;
         }
+
         
-        
-        var rigidBodyRefs = _world.GetPool<RigidBodyRef>();
-        
-        foreach (var entity in _filter)
+
+        foreach (var entity in _rigidBodyFilter)
         {
-            ref RigidBodyRef rigidBodyRef = ref rigidBodyRefs.Get(entity);
+            ref RigidBodyRef rigidBodyRef = ref _rigidBodyRefs.Get(entity);
             var rb = rigidBodyRef.Rigidbody;
             Vector3 velocity = GetDirection() * _data.PlayerSpeed;
             velocity.y = rb.velocity.y;
             rb.velocity = velocity;
+        }
+
+        var _finishTags = _world.GetPool<FinishTag>();
+        
+        foreach (var entity in _finishFilter)
+        {
+            ref FinishTag finishTag = ref _finishTags.Get(entity);
+            Object.Destroy(finishTag.Player);
+            _world.DelEntity(entity);
         }
     }
     
@@ -43,7 +53,9 @@ public class PlayerMovement : IEcsRunSystem, IEcsInitSystem
 
     private Player _player;
     private EcsWorld _world;
-    private EcsFilter _filter;
+    private EcsFilter _rigidBodyFilter;
+    private EcsFilter _finishFilter;
+    private EcsPool<RigidBodyRef> _rigidBodyRefs;
     private int _directionIndex = 0;
     private PlayerMovementData _data;
 }

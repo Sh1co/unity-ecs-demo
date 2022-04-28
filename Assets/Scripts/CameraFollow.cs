@@ -15,6 +15,11 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (_followTarget == null)
+        {
+            Destroy(this);
+            return;
+        }
         Vector3 newPosition = _followTarget.position + _offset;
         newPosition.y = _fixedY;
         transform.position = newPosition;

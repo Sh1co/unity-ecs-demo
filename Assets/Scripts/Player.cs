@@ -11,13 +11,25 @@ public class Player : MonoBehaviour
 
     public void CreateEntity(EcsWorld world)
     {
-        var entity = world.NewEntity();
+        _world = world;
+        _entity = world.NewEntity();
         var playerTags = world.GetPool<PlayerTag>();
         var rigidBodyRefs = world.GetPool<RigidBodyRef>();
-        playerTags.Add(entity);
-        ref var transformRef = ref rigidBodyRefs.Add(entity);
+        playerTags.Add(_entity);
+        ref var transformRef = ref rigidBodyRefs.Add(_entity);
         transformRef.Rigidbody = GetComponent<Rigidbody>();
     }
-    
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Finish"))
+        {
+            var finishTags = _world.GetPool<FinishTag>();
+            ref var finishTag = ref finishTags.Add(_entity);
+            finishTag.Player = gameObject;
+        }
+    }
+
+    private EcsWorld _world;
+    private int _entity;
 }
