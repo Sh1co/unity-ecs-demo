@@ -12,14 +12,21 @@ public class Startup : MonoBehaviour
     [SerializeField] private float _minPieceSize = 5f;
     [SerializeField] private float _maxPieceSize = 25f;
     [SerializeField] private Vector3 _piecesShift = new Vector3(1f, 0, -1f);
+    [Header("Player Movement data")]
+    [SerializeField] private float _playerSpeed = 6.0f;
+    [SerializeField] private Vector3 Direction1 = Vector3.forward;
+    [SerializeField] private Vector3 Direction2 = Vector3.left;
+    [SerializeField] private Player _player;
 
     void Start()
     {
-        LevelData ld = new LevelData(_piecesCount, _minPieceSize, _maxPieceSize, _piecesShift);
+        LevelData levelData = new LevelData(_piecesCount, _minPieceSize, _maxPieceSize, _piecesShift);
+        PlayerMovementData playerMovementData = new PlayerMovementData(_playerSpeed, Direction1, Direction2);
 
         _world = new EcsWorld();
         _systems = new EcsSystems(_world)
-            .Add(new LevelBuilding(_fwPiece, _lfPiece, _finish, ld));
+            .Add(new LevelBuilding(_fwPiece, _lfPiece, _finish, levelData))
+            .Add(new PlayerMovement(_player, _world, playerMovementData));
         _systems.Init();
     }
 
